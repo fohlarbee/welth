@@ -1,0 +1,12 @@
+{
+  "github.copilot.chat.enable": false,
+  "github.copilot.enable": {
+    "*": false,
+    "plaintext": false,
+    "markdown": false,
+    "scminput": false
+  },
+  "github.copilot.chat.triggerAutomatically": false,
+  "github.copilot.nextEditSuggestions.enabled": false,
+  "github.copilot.chat.completionContext.typescript.mode": "off"
+}

@@ -1,0 +1,147 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// generator edge {
+//   provider = "prisma-client-js"
+//   output   = "./generated/prisma/edge"
+// }
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+
+}
+
+model User {
+  id          String   @id @default(uuid())
+  name        String
+  email       String   @unique
+  imageUrl       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  accounts        Account[]
+  loanApplications LoanApplication[]
+
+  @@map("users")
+}
+
+ enum AccountType {
+  savings
+  current
+  virtual
+} 
+model Account {
+  id          String   @id @default(uuid())
+  userId      String
+  bankName    String
+  accountName String
+  accountType   AccountType  @default(savings)
+  balance     Decimal   @default(0)
+  isDefault   Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions    Transaction[]
+  statements      Statement[]
+  riskReports     RiskReport[]
+  loanApplications LoanApplication[]
+
+  @@index([userId])
+  @@map("accounts")
+}
+
+enum TransactionType {
+  credit
+  debit
+  loan
+  transfer
+}
+model Transaction {
+  id            String   @id @default(uuid())
+  accountId     String
+  type          TransactionType    @default(credit)
+  description   String?
+  category      String?
+  amount        Float
+  occurredAt    DateTime
+  createdAt     DateTime @default(now())
+
+  account       Account  @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
+  @@map("transactions")
+}
+
+enum StatementType {
+  bank_statement
+  invoice
+}
+enum Status {
+  pending
+  parsed
+  failed
+}
+model Statement {
+  id         String   @id @default(uuid())
+  accountId  String
+  fileUrl    String
+  fileType   StatementType  @default(invoice)
+  status     Status @default(pending)
+  uploadedAt DateTime @default(now())
+
+  account    Account  @relation(fields: [accountId], references: [id])
+
+
+  @@index([accountId])
+  @@map("statements")
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+}
+model RiskReport {
+  id               String   @id @default(uuid())
+  accountId        String
+  netIncome        Float
+  totalSpending    Float
+  riskLevel        RiskLevel   @default(low)
+  recommendedLoan  Float
+  creditScore      Int
+  evaluatedAt      DateTime @default(now())
+
+  account          Account  @relation(fields: [accountId], references: [id])
+
+
+  @@index([accountId])
+  @@map("riskReports")
+}
+ enum LoanStatus {
+  pending
+  rejected
+  approved
+ }
+model LoanApplication {
+  id              String   @id @default(uuid())
+  userId          String
+  accountId       String
+  amountRequested Float
+  status          LoanStatus   @default(pending)
+  loanTenure      Int     // in months
+  repaymentPlan   String? // json or stringified schedule
+  decisionNote    String?
+  submittedAt     DateTime @default(now())
+
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([accountId])
+  @@map("loanApplications")
+}
