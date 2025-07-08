@@ -3,8 +3,11 @@ import { getAccountWithTransactions } from '../../../../../actions/account';
 import { notFound } from 'next/navigation';
 import { BarLoader } from "react-spinners";
 import { AccountChart } from '../_components/accountChart';
-import Image from 'next/image';
 import { TransactionTable } from '../_components/transactionsTable';
+import {  SparkleIcon } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 type Props = {
     params: Promise<{accountId: string}>
@@ -19,7 +22,7 @@ export type Transaction = {
   occurredAt: Date;
   createdAt: Date;
 };
-type AccountWithTransactions = {
+export type AccountWithTransactions = {
   balance: number;
   userId: string;
   id: string;
@@ -33,29 +36,32 @@ type AccountWithTransactions = {
   _count: { transactions: number };
 };
 
+ export function formatNumberWithCommas(value: number | string): string {
+      const number = typeof value === "string" ? parseFloat(value) : value;
+      if (isNaN(number)) return "0";
+      return number.toLocaleString("en-NG", {
+        style:'currency',
+        currency:'NGN'
+      });
+   }
 const Accounts = async({params}: Props) => {
   const {accountId} = await params
   const accountData = await getAccountWithTransactions(accountId) as AccountWithTransactions;
-  console.log(accountData)
   
 
  if (!accountData) {
     notFound();
   }
-
+    
   const { ...account } = accountData;
   const transactions = accountData.transactions as Transaction[];
-   function formatNumberWithCommas(value: number | string): string {
-  const number = typeof value === "string" ? parseFloat(value) : value;
-  if (isNaN(number)) return "0";
-  return number.toLocaleString("en-US");
-}
+  
 
   return (
     <div className="space-y-8 px-5">
       <div className="flex gap-4 items-end justify-between">
-        <div>
-          <h1 className="text-5xl sm:text-6xl 
+        <div className='object-contain'>
+          <h1 className="md:text-5xl text-2xl 
         bg-gradient-to-br from-blue-600 to-purple-600
         font-extrabold tracking-tighter pr-2  text-transparent bg-clip-text capitalize">
             {account.bankName}
@@ -66,16 +72,40 @@ const Accounts = async({params}: Props) => {
           </p>
         </div>
 
-        <div className="text-right pb-2">
-          <div className="text-xl sm:text-2xl font-bold flex">
-             <Image src='/naira.png' width={15} height={5} alt="expense"
-                  className="
-            font-extrabold tracking-tighter pr-0.5 text-transparent bg-clip-text capitalize"/>
+        <div className="text-right pb-2 mt-auto mb-auto">
+          <div className="text-lg md:text-2xl font-bold flex text-right justify-end">
             {formatNumberWithCommas((account.balance).toFixed(2))}
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground text-right">
             {account._count.transactions} Transactions
+            
           </p>
+          <TooltipProvider>
+            <Tooltip >
+              <TooltipTrigger className='cursor-pointer'>
+                <Link href={`/account/${accountId}/loan`}>
+
+                 <Badge
+                    variant="secondary"
+                    className="gap-1 bg-purple-100 text-purple-700 hover:bg-purple-200"
+                  >
+                    <SparkleIcon className="h-3 w-3" />
+                  
+                    Loan Recommendation with AI
+                  </Badge>
+                </Link>
+                {/* <Button size={'icon'} variant='default'>
+                    <BookAIcon/>
+                </Button> */}
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Generate personalized Loan Recommendation and risk Management with AI based on 
+                  your acount activity
+                </p>
+              </TooltipContent>
+            </Tooltip>
+
+          </TooltipProvider>
         </div>
       </div>
 

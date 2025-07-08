@@ -53,7 +53,7 @@ import { cn } from "@/lib/utils";
 // import { bulkDeleteTransactions } from "@/actions/account";
 import { BarLoader } from "react-spinners";
 import { useRouter } from "next/navigation";
-import { Transaction } from "../[accountId]/page";
+import { formatNumberWithCommas, Transaction } from "../[accountId]/page";
 import { bulkDeleteTransactions } from "../../../../../actions/account";
 import useFetch from "@/hooks/useFetch";
 import { categoryColors } from "@/data/categories";
@@ -181,7 +181,7 @@ export function TransactionTable({ transactions, accountId }: {transactions: Tra
 
   useEffect(() => {
     if (deleted && !deleteLoading) {
-      toast.error("Transactions deleted successfully");
+      toast.success("Transactions deleted successfully");
     }
   }, [deleted, deleteLoading]);
 
@@ -383,8 +383,8 @@ const handlePageChange: HandlePageChangeFn = (newPage) => {
                         : "text-green-500"
                     )}
                   >
-                    {transaction.type === "debit" ? "-" : "+"}#
-                    {transaction.amount.toFixed(2)}
+                    {transaction.type === "debit" ? "-" : "+"}
+                    {formatNumberWithCommas(transaction.amount.toFixed(2))}
                   </TableCell>
                   <TableCell>
                     {transaction.type === 'credit' ? (

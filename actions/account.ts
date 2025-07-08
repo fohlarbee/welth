@@ -104,7 +104,7 @@ export async function bulkDeleteTransactions(transactionIds: string[], accountId
     });
 
     revalidatePath("/dashboard");
-    revalidatePath("/account/[id]");
+    revalidatePath("/account/[accoundId]")
 
     return { success: true };
   } catch (error) {

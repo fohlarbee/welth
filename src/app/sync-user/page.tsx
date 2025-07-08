@@ -7,7 +7,6 @@ const SyncUser = async() => {
     const {userId} = await auth();
     if (!userId) throw new Error("User not found");
     const baseUrl = process.env.NEXT_PUBLIC_URL as string;
-    // console.log(baseUrl)
 
     const client = await clerkClient();
     const clerkUser = await client.users.getUser(userId);

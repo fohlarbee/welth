@@ -20,8 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Transaction } from "../[accountId]/page";
-import Image from "next/image";
+import { formatNumberWithCommas, Transaction } from "../[accountId]/page";
 
 const DATE_RANGES = {
   "7D": { label: "Last 7 Days", days: 7 },
@@ -32,9 +31,52 @@ const DATE_RANGES = {
 };
 
 type DateRangeKey = keyof typeof DATE_RANGES;
+import { TooltipProps } from "recharts";
+import { ValueType, NameType } from 'recharts/types/component/DefaultTooltipContent';
+
+const CustomTooltip = ({
+  active,
+  payload,
+  label,
+  
+}: TooltipProps<ValueType, NameType>) => {
+  if (active && payload && payload.length > 0) {
+    return (
+      <div
+        style={{
+          backgroundColor: '#fff',
+          border: '1px solid hsl(var(--border))',
+          borderRadius: 'var(--radius)',
+          padding: '0.5rem',
+          alignItems:'center',
+          justifyItems:'center',
+          margin:'10px'
+        }}
+      >
+        <p className="font-semibold text-sm text-muted-foreground mb-1">{label}</p>
+        {payload.map((entry, index) => (
+          <p
+            key={index}
+            style={{
+              color: entry.name === 'Credit' ? '#22c55e' : '#dc2626',
+              fontWeight: 'bold',
+              margin: 0,
+            }}
+          >
+            {entry.name}: {formatNumberWithCommas(Array.isArray(entry.value) ? entry.value[0] : entry.value!)}
+          </p>
+        ))}
+      </div>
+    );
+  }
+
+  return null;
+};
+
+
 
 export function AccountChart({ transactions }: {transactions:Transaction[]}) {
-  const [dateRange, setDateRange] = useState<DateRangeKey>("1M");
+  const [dateRange, setDateRange] = useState<DateRangeKey>("7D");
 
   const filteredData = useMemo(() => {
     const range = DATE_RANGES[dateRange];
@@ -64,12 +106,13 @@ export function AccountChart({ transactions }: {transactions:Transaction[]}) {
 
     // Convert to array and sort by date
     return Object.values(grouped).sort(
-      (a, b) => {
+      (a, b) => (
         // Parse the date string back to a Date object for sorting
-        const aDate = new Date(`${a.date} ${new Date().getFullYear()}`);
-        const bDate = new Date(`${b.date} ${new Date().getFullYear()}`);
-        return aDate.getTime() - bDate.getTime();
-      }
+        // const aDate = new Date(`${a.date} ${new Date().getFullYear()}`);
+        // const bDate = new Date(`${b.date} ${new Date().getFullYear()}`);
+        // return a.getTime() - bDate.getTime();
+         new Date(a.date).getTime() - new Date(b.date).getTime()
+      )
     );
   }, [transactions, dateRange]);
 
@@ -106,35 +149,28 @@ export function AccountChart({ transactions }: {transactions:Transaction[]}) {
       <CardContent>
         <div className="flex justify-around mb-6 text-sm">
           <div className="text-center">
-            <p className="text-muted-foreground">Total Income</p>
-            <p className="text-lg font-bold text-green-500 flex">
-                 <Image src='/naira.png' width={15} height={5} alt="expense"
-              className="bg-green-400
-              font-extrabold tracking-tighter pr-0.5 text-transparent bg-clip-text capitalize"/>
-              ${totals.credit.toFixed(2)}
+            <p className="text-muted-foreground text-xs md:text-lg">Total Credit</p>
+            <p className="md:text-lg text-xs font-bold text-green-500 flex">
+              {formatNumberWithCommas(totals.credit.toFixed(2))}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-muted-foreground">Total Expenses</p>
-            <p className="text-lg font-bold text-red-500 flex">
-              <Image src='/naira.png' width={15} height={5} alt="expense"
-              className="bg-red-400
-        font-extrabold tracking-tighter pr-0.5 text-transparent bg-clip-text capitalize"/>{totals.debit.toFixed(2)}
+            <p className="text-muted-foreground text-xs md:text-lg">Total debit</p>
+            <p className="md:text-lg text-xs font-bold text-red-500 flex">
+             { formatNumberWithCommas(totals.debit.toFixed(2))}
             </p>
           </div>
           <div className="text-center">
-            <p className="text-muted-foreground">Net</p>
+            <p className="text-muted-foreground text-xs md:text-lg">Net</p>
             <p
-              className={`text-lg font-bold flex ${
+              className={`md:text-lg text-xs font-bold flex ${
                 totals.credit - totals.debit >= 0
                   ? "text-green-500"
                   : "text-red-500"
               }`}
             >
-                 <Image src='/naira.png' width={15} height={5} alt="expense"
-              className="bg-green-500
-                     font-extrabold tracking-tighter pr-0.5 text-transparent bg-clip-text capitalize"/>
-              {(totals.credit - totals.debit).toFixed(2)}
+               
+              {formatNumberWithCommas((totals.credit - totals.debit).toFixed(2))}
             </p>
           </div>
         </div>
@@ -146,37 +182,37 @@ export function AccountChart({ transactions }: {transactions:Transaction[]}) {
             >
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis
-                dataKey="date"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
+              dataKey="date"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
               />
               <YAxis
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-                tickFormatter={(value) => `$${value}`}
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              tickFormatter={(value) => formatNumberWithCommas(value)}
               />
               <Tooltip
-                formatter={(value) => [`$${value}`, undefined]}
-                contentStyle={{
-                  backgroundColor: "hsl(var(--popover))",
-                  border: "1px solid hsl(var(--border))",
-                  borderRadius: "var(--radius)",
-                }}
+              content={(props) => <CustomTooltip {...props}/>}
               />
-              <Legend />
+              <Legend
+               layout="horizontal"
+               verticalAlign="top"
+               align="right"
+               />
               <Bar
-                dataKey="income"
-                name="Income"
-                fill="#22c55e"
-                radius={[4, 4, 0, 0]}
+              dataKey="credit"
+              name="Credit"
+              fill="#22c55e"
+              radius={[4, 4, 0, 0]}
+            
               />
               <Bar
-                dataKey="expense"
-                name="Expense"
-                fill="#ef4444"
-                radius={[4, 4, 0, 0]}
+              dataKey="debit"
+              name="Debit"
+              fill="#FF6363"
+              radius={[4, 4, 0, 0]}
               />
             </BarChart>
           </ResponsiveContainer>

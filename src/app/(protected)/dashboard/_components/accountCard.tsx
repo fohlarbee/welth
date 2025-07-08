@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { PrismaAccount } from "../../../../../actions/dashboard";
 import useFetch from "@/hooks/useFetch";
 import { updateDefaultAccount } from "../../../../../actions/account";
-import Image from "next/image";
+import { formatNumberWithCommas } from "../../account/[accountId]/page";
 
 export function AccountCard({ account }: {account: PrismaAccount}) {
   const { accountName, accountType, balance, id, isDefault } = account;
@@ -68,7 +68,8 @@ const handleDefaultChange = async (
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold flex">
-            <Image src='/naira.png' width={20} height={20} alt="naira"/> {parseFloat(balance.toString()).toFixed(2)}
+            
+            {formatNumberWithCommas(parseFloat(balance.toString()).toFixed(2))}
           </div>
           <p className="text-xs text-muted-foreground">
             {accountType.charAt(0) + accountType.slice(1).toLowerCase()} Account
@@ -77,11 +78,11 @@ const handleDefaultChange = async (
         <CardFooter className="flex justify-between text-sm text-muted-foreground">
           <div className="flex items-center">
             <ArrowUpRight className="mr-1 h-4 w-4 text-green-500" />
-            Income
+            Credit
           </div>
           <div className="flex items-center">
             <ArrowDownRight className="mr-1 h-4 w-4 text-red-500" />
-            Expense
+            Debit
           </div>
         </CardFooter>
       </Link>

@@ -124,19 +124,20 @@ model RiskReport {
 }
  enum LoanStatus {
   pending
-  rejected
-  approved
+  Ready
  }
 model LoanApplication {
   id              String   @id @default(uuid())
   userId          String
   accountId       String
-  amountRequested Float
   status          LoanStatus   @default(pending)
-  loanTenure      Int     // in months
+  loanTenure      Int?     // in months
   repaymentPlan   String? // json or stringified schedule
   decisionNote    String?
-  submittedAt     DateTime @default(now())
+  netIncome       Float?
+  recommendedLoanAmount  Float?
+  creditScore         Float?
+  evaluatedAt     DateTime @default(now())
 
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   account         Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)

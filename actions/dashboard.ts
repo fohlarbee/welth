@@ -24,12 +24,6 @@ export type PrismaAccount = {
   };
 };
 
-// export const serializeAccount = (account: PrismaAccount) => {
-//   const serialized = { ...account };
-//   serialized.balance = account.balance;
-
-//   return serialized;
-// };
 export async function createAccount(data: z.infer<typeof accountSchema>) {
   try {
     const { userId } = await auth();
@@ -43,7 +37,6 @@ export async function createAccount(data: z.infer<typeof accountSchema>) {
     });
     if (!user)
       return NextResponse.json({ msg: "user not found" }, { status: 401 });
-    // console.log("data from create account server action", data);
 
     // Convert balance to float before saving
     const balanceFloat = parseFloat(data.balance);
@@ -81,7 +74,6 @@ export async function createAccount(data: z.infer<typeof accountSchema>) {
     revalidatePath("/dashboard");
     return { success: true, data: serializedAcc };
   } catch (error) {
-    // console.log(error);
     throw new Error("Something went wrong", error!);
   }
 }

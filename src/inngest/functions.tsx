@@ -1,6 +1,6 @@
 import { clerkClient } from "@clerk/nextjs/server";
 import { inngest } from "./client";
-import { dbEdge } from "@/lib/db/prisma-edge";
+import { db } from "@/lib/db/prisma";
 
 
 export const helloWorld = inngest.createFunction(
@@ -27,13 +27,13 @@ export const createNewUser = inngest.createFunction(
       const clerkUser = await client.users.getUser(userId);
 
 
-      const user = await dbEdge.user.findUnique({
+      const user = await db.user.findUnique({
         where:{
           id:userId
         }
       });
       if (!user){
-        await dbEdge.user.create({
+        await db.user.create({
           data:{
             id:userId!,
             email:clerkUser.emailAddresses[0]?.emailAddress as string,

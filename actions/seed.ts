@@ -60,6 +60,12 @@ export async function seedTransactions() {
         const type: "credit" | "debit" = Math.random() < 0.4 ? "credit" : "debit";
         const { category, amount } = getRandomCategory(type);
 
+        // Generate a random date within the last 6 months for occurredAt
+        const now = new Date();
+        const sixMonthsAgo = subDays(now, 182); // ~6 months
+        const randomTime = sixMonthsAgo.getTime() + Math.random() * (now.getTime() - sixMonthsAgo.getTime());
+        const occurredAt = new Date(randomTime);
+
         const transaction: Transaction = {
           id: crypto.randomUUID(),
           type,
@@ -69,7 +75,7 @@ export async function seedTransactions() {
           } ${category}`,
           category,
           accountId: ACCOUNT_ID,
-          occurredAt: new Date(),
+          occurredAt,
           createdAt: date,
         };
 
